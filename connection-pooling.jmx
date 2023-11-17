@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.2">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="P_SERVER" elementType="Argument">
+            <stringProp name="Argument.name">P_SERVER</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.value">${__P(P_SERVER,18.191.133.116)}</stringProp>
+          </elementProp>
+          <elementProp name="P_PORT" elementType="Argument">
+            <stringProp name="Argument.name">P_PORT</stringProp>
+            <stringProp name="Argument.value">${__P(P_PORT,80)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="P_PROTOCOL" elementType="Argument">
+            <stringProp name="Argument.name">P_PROTOCOL</stringProp>
+            <stringProp name="Argument.value">${__P(P_POROTOCOL,http)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath">C:\Tools\apache-jmeter-5.6.2\lib</stringProp>
+    </TestPlan>
+    <hashTree>
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+          <collectionProp name="Arguments.arguments"/>
+        </elementProp>
+        <stringProp name="HTTPSampler.domain">${P_SERVER}</stringProp>
+        <stringProp name="HTTPSampler.port">${P_PORT}</stringProp>
+        <stringProp name="HTTPSampler.protocol">${P_PROTOCOL}</stringProp>
+        <boolProp name="HTTPSampler.concurrentDwn">true</boolProp>
+        <stringProp name="HTTPSampler.concurrentPool">6</stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.delayedStart">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">60</stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T00_HomePage" enabled="false">
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <boolProp name="HTTPSampler.BROWSER_COMPATIBLE_MULTIPART">false</boolProp>
+          <boolProp name="HTTPSampler.image_parser">false</boolProp>
+          <boolProp name="HTTPSampler.concurrentDwn">false</boolProp>
+          <stringProp name="HTTPSampler.concurrentPool">6</stringProp>
+          <boolProp name="HTTPSampler.md5">false</boolProp>
+          <intProp name="HTTPSampler.ipSourceType">0</intProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="T00_HomePage_MultipleConnections_${__threadNum}" enabled="false">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters">${P_PROTOCOL} ${P_SERVER} ${__threadNum}</stringProp>
+          <stringProp name="script">import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy
+import org.apache.http.util.EntityUtils
+
+
+// Define the desired number of connections
+def maxConnectionsPerRoute = 10
+def maxTotalConnections = 10
+
+// Create a connection manager with the specified number of connections
+PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager()
+connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute)
+connectionManager.setMaxTotal(maxTotalConnections)
+//log.info(&quot;${connectionManager}&quot;)
+
+def customKeepAliveStrategy = new DefaultConnectionKeepAliveStrategy() {
+    @Override
+    public long getKeepAliveDuration(org.apache.http.HttpResponse response, org.apache.http.protocol.HttpContext context) {
+        // Set the keep-alive timeout to 60 seconds (in milliseconds)
+        return 60 * 1000
+    }
+}
+
+//log.info(&quot;Keep-Alive Timeout: &quot; + customKeepAliveStrategy.getKeepAliveDuration(null, null) + &quot; milliseconds&quot;)
+
+for(int i=0; i&lt;10; i++){
+// Create a HttpClient instance using the connection manager
+    CloseableHttpClient httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setKeepAliveStrategy(customKeepAliveStrategy)
+            .build()
+
+    // Set the HttpClient as a variable to be used in the sampler
+    vars.putObject(&quot;customHttpClient&quot;, httpClient)
+
+    // Retrieve the custom HttpClient from the variable
+    def customHttpClient = vars.getObject(&quot;customHttpClient&quot;) as CloseableHttpClient
+    //log.info(&quot;${customHttpClient}&quot;)
+    // Get the context&apos;s connection manager, which contains connection data
+    //def cm = customHttpClient.getConnectionManager()
+
+    // Create an HTTP request
+    def httpGet = new HttpGet(args[0] + &quot;://&quot; + args[1])
+
+    // Execute the request using the custom HttpClient
+    def response = customHttpClient.execute(httpGet)
+
+    // Get the connection number for the executed request
+
+    // Print the HTTP response content
+    //log.info(&quot;Response Content:\n${EntityUtils.toString(response.getEntity())}&quot;)
+
+
+    log.info(&quot;Active Connections: ${args[2]}&quot; + connectionManager.getTotalStats().getLeased())
+    log.info(&quot;Available Connections: ${args[2]} &quot; + connectionManager.getTotalStats().getAvailable())
+
+
+    response.close() // Close the response
+
+
+}
+
+
+
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="T00_HomePage_MultipleConnections_${__threadNum}" enabled="true">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters">${P_PROTOCOL} ${P_SERVER} ${__threadNum}</stringProp>
+          <stringProp name="script">import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy
+import org.apache.http.util.EntityUtils
+
+// Define the desired number of connections
+def maxConnectionsPerRoute = 10
+def maxTotalConnections = 10
+
+// Create an array of connection managers.
+PoolingHttpClientConnectionManager[] connectionManagers = new PoolingHttpClientConnectionManager[2]
+
+// Use a for loop to create 10 connection managers.
+for (int i = 0; i &lt; 2; i++) {
+    connectionManagers[i] = new PoolingHttpClientConnectionManager()
+    connectionManagers[i].setDefaultMaxPerRoute(maxConnectionsPerRoute)
+    connectionManagers[i].setMaxTotal(maxTotalConnections)
+}
+
+// Create an array of HTTP clients.
+CloseableHttpClient[] httpClients = new CloseableHttpClient[2]
+
+// Use a for loop to create 10 HTTP clients, each with its own connection manager.
+for (int i = 0; i &lt; 2; i++) {
+    httpClients[i] = HttpClients.custom()
+        .setConnectionManager(connectionManagers[i])
+        .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
+        .build()
+}
+
+// Create an HTTP request.
+def httpGet = new HttpGet(args[0] + &quot;://&quot; + args[1])
+
+// Use the HTTP clients to send 10 requests each.
+for (CloseableHttpClient httpClient : httpClients) {
+    for (int i = 0; i &lt; 2; i++) {
+        // Execute the request using the custom HttpClient.
+        def response = httpClient.execute(httpGet)
+
+        // Get the connection number for the executed request.
+        //def connectionNumber = response.getConnectionNumber()
+
+        // Print the HTTP response content.
+        //log.info(&quot;Response Content:\n${EntityUtils.toString(response.getEntity())}&quot;)
+
+        log.info(&quot;Active Connections: ${args[2]}&quot; + connectionManagers[i].getTotalStats().getLeased())
+        log.info(&quot;Available Connections: ${args[2]} &quot; + connectionManagers[i].getTotalStats().getAvailable())
+
+        response.close() // Close the response.
+    }
+}
+
+// Close the HTTP clients.
+for (CloseableHttpClient httpClient : httpClients) {
+    httpClient.close()
+}</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="T00_HomePage_MultipleConnections_${__threadNum}" enabled="false">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters">${P_PROTOCOL} ${P_SERVER} ${__threadNum}</stringProp>
+          <stringProp name="script">import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy
+import org.apache.http.util.EntityUtils
+
+
+// Define the desired number of connections
+def maxConnectionsPerRoute = 10
+def maxTotalConnections = 10
+
+// Create a connection manager with the specified number of connections
+PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager()
+connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute)
+connectionManager.setMaxTotal(maxTotalConnections)
+//log.info(&quot;${connectionManager}&quot;)
+
+def customKeepAliveStrategy = new DefaultConnectionKeepAliveStrategy() {
+    @Override
+    public long getKeepAliveDuration(org.apache.http.HttpResponse response, org.apache.http.protocol.HttpContext context) {
+        // Set the keep-alive timeout to 60 seconds (in milliseconds)
+        return 60 * 1000
+    }
+}
+
+//log.info(&quot;Keep-Alive Timeout: &quot; + customKeepAliveStrategy.getKeepAliveDuration(null, null) + &quot; milliseconds&quot;)
+
+
+// Create a HttpClient instance using the connection manager
+CloseableHttpClient httpClient = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setKeepAliveStrategy(customKeepAliveStrategy)
+        .build()
+
+// Set the HttpClient as a variable to be used in the sampler
+vars.putObject(&quot;customHttpClient&quot;, httpClient)
+
+// Retrieve the custom HttpClient from the variable
+def customHttpClient = vars.getObject(&quot;customHttpClient&quot;) as CloseableHttpClient
+//log.info(&quot;${customHttpClient}&quot;)
+// Get the context&apos;s connection manager, which contains connection data
+//def cm = customHttpClient.getConnectionManager()
+
+// Create an HTTP request
+def httpGet = new HttpGet(args[0] + &quot;://&quot; + args[1])
+
+// Execute the request using the custom HttpClient
+def response = customHttpClient.execute(httpGet)
+
+// Get the connection number for the executed request
+
+// Print the HTTP response content
+//log.info(&quot;Response Content:\n${EntityUtils.toString(response.getEntity())}&quot;)
+
+
+log.info(&quot;Active Connections: ${args[2]}&quot; + connectionManager.getTotalStats().getLeased())
+log.info(&quot;Available Connections: ${args[2]} &quot; + connectionManager.getTotalStats().getAvailable())
+
+
+response.close() // Close the response
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="T00_HomePage_MultipleConnections_${__threadNum}_HTTP5" enabled="false">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters">${P_PROTOCOL} ${P_SERVER} ${__threadNum}</stringProp>
+          <stringProp name="script">import org.apache.hc.core5.ssl.SSLContexts
+import org.apache.hc.core5.ssl.SSLContextBuilder
+import org.apache.hc.client5.HttpClients
+import org.apache.hc.core5.ssl.SSLConnectionSocketFactoryBuilder
+import org.apache.hc.core5.ssl.TrustSelfSignedStrategy
+import org.apache.hc.core5.ssl.PrivateKeyStrategy
+import org.apache.hc.core5.ssl.KeyStoreType
+import org.apache.hc.core5.ssl.SSLContext
+import org.apache.hc.core5.util.TimeValue
+import org.apache.hc.core5.pool.PoolStats
+import org.apache.hc.core5.ssl.SSLHost
+import org.apache.hc.core5.ssl.TLS
+import org.apache.hc.core5.ssl.PrivateKeyDetails
+import org.apache.hc.core5.ssl.KeyMaterial
+
+// Define the desired number of connections
+def maxConnectionsPerRoute = 1
+def maxTotalConnections = 1
+
+// Create a connection manager with the specified number of connections
+PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(
+        60, // Default connection time to live
+        TimeValue.ofSeconds(60) // Validate after inactivity
+)
+
+connectionManager.setMaxTotal(maxTotalConnections)
+connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute)
+
+// Create a custom keep-alive strategy
+def customKeepAliveStrategy = (response, context) -&gt; 60 * 1000 // Set the keep-alive timeout to 60 seconds (in milliseconds)
+
+// Create an HttpClient instance
+CloseableHttpClient httpClient = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .setKeepAliveStrategy(customKeepAliveStrategy)
+        .build()
+
+// Set the HttpClient as a variable to be used in the sampler
+vars.putObject(&quot;customHttpClient&quot;, httpClient)
+
+// Retrieve the custom HttpClient from the variable
+def customHttpClient = vars.getObject(&quot;customHttpClient&quot;) as CloseableHttpClient
+
+// Create an HTTP request
+def httpGet = new HttpGet(args[0] + &quot;://&quot; + args[1])
+
+// Execute the request using the custom HttpClient
+def response = customHttpClient.execute(httpGet)
+
+// Print the HTTP response content
+log.info(&quot;Response Content:\n${EntityUtils.toString(response.getEntity())}&quot;)
+
+// Get connection pool stats
+def poolStats = connectionManager.getTotalStats()
+log.info(&quot;Active Connections: ${args[2]}&quot; + poolStats.getLeased())
+log.info(&quot;Available Connections: ${args[2]} &quot; + poolStats.getAvailable())
+
+response.close() // Close the response
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="T00_HomePage_MultipleConnections" enabled="false">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters">${P_PROTOCOL} ${P_SERVER}</stringProp>
+          <stringProp name="script">import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.client.methods.HttpGet
+
+def maxConnectionsPerRoute = 1
+def maxTotalConnections = 5
+
+PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager()
+connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute)
+connectionManager.setMaxTotal(maxTotalConnections)
+
+CloseableHttpClient httpClient = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .build()
+
+// Execute multiple requests to trigger connection creation
+for (int i = 0; i &lt; 5; i++) {
+    def httpGet = new HttpGet(&quot;https://www.example.com&quot;)
+    def response = httpClient.execute(httpGet)
+    response.close()
+}
+
+// Log the active and available connections
+log.info(&quot;Active Connections: &quot; + connectionManager.getTotalStats().getLeased())
+log.info(&quot;Available Connections: &quot; + connectionManager.getTotalStats().getAvailable())
+
+// Close the HttpClient when you&apos;re done with it
+httpClient.close()
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="okHTTP" enabled="false">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters">${P_PROTOCOL} ${P_SERVER}</stringProp>
+          <stringProp name="script">import com.squareup.okhttp3.OkHttpClient
+import com.squareup.okhttp3.Request
+
+def client = new OkHttpClient()
+
+def request = new Request.Builder()
+    .url(&apos;https://api.example.com/endpoint&apos;)
+    .header(&apos;Authorization&apos;, &apos;Bearer your-token&apos;)
+    .build()
+
+def response = client.newCall(request).execute()
+def responseBody = response.body().string()
+
+println &quot;Response code: ${response.code()}&quot;
+println &quot;Response data: ${responseBody}&quot;
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>true</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="Aggregate Report" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>true</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
